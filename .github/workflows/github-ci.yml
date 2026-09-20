@@ -35,7 +35,7 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with: 
           scan-type: 'fs'
-          ignore-unfixed: true
+          ignore-unfixed: false
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
