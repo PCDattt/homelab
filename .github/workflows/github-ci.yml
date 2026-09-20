@@ -28,6 +28,8 @@ jobs:
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy scan repo
         uses: aquasecurity/trivy-action@v0.36.0
