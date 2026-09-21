@@ -1,5 +1,5 @@
 # This is a basic workflow to help you get started with Actions
-name: CI
+name: Application CI
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
@@ -52,5 +52,8 @@ jobs:
           go-version: 1.27.1
 
       # Runs unit test
-      - name: Unit test
+      - name: Golang unit test
         run: go test -v
+
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v9.3.0
