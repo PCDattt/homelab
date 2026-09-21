@@ -2,10 +2,9 @@ version: "2"
 
 linters:
   enable:
-    - lll       # Checks line length
-    - errcheck  # Checks for unhandled errors
-    - revive    # General style and code quality rules
-
-linters-settings:
-  lll:
-    line-length: 120
+    - lll
+    - errcheck
+    - revive
+  settings:
+    lll:
+      line-length: 120
