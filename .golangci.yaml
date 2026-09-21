@@ -2,9 +2,8 @@ version: "2"
 
 linters:
   enable:
-    - lll       # Checks line length
-    - errcheck  # Checks for unhandled errors
-
-linters-settings:
-  lll:
-    line-length: 120
+    - lll
+    - errcheck
+  settings:
+    lll:
+      line-length: 120
