@@ -11,11 +11,17 @@ func sum(a, b int) int {
 }
 
 func greet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World! %s", time.Now())
+	_, err := fmt.Fprintf(w, "Hello World! %s", time.Now())
+	if err != nil {
+		fmt.Println("Error :v", err)
+	}
 }
 
 func main() {
 	fmt.Println("Server started at localhost:8080")
 	http.HandleFunc("/", greet)
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		fmt.Println("Error ListenAndServe %v", err)
+	}
 }
