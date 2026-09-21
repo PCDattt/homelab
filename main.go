@@ -13,7 +13,7 @@ func sum(a, b int) int {
 func greet(w http.ResponseWriter, r *http.Request) {
 	_, err := fmt.Fprintf(w, "Hello World! %s", time.Now())
 	if err != nil {
-		fmt.Printf("Error %v\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", err)
+		fmt.Printf("Error %v\n", err)
 	}
 }
 
