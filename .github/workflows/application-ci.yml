@@ -28,13 +28,11 @@ jobs:
 
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v3
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy scan repo
         uses: aquasecurity/trivy-action@v0.36.0
-        continue-on-error: true
         with: 
           scan-type: 'fs'
           ignore-unfixed: false
@@ -44,7 +42,6 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        continue-on-error: true
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -56,9 +53,7 @@ jobs:
 
       # Runs unit test
       - name: Golang unit test
-        continue-on-error: true
         run: go test -v
 
       - name: Golangci-lint
         uses: golangci/golangci-lint-action@v9.3.0
-        continue-on-error: true
