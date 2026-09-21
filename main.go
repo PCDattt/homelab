@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	_ "github.com/gin-gonic/gin"
+	_ "golang.org/x/crypto/ssh"
 )
 
 func sum(a, b int) int {
