@@ -97,6 +97,6 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v7.4.0
         with:
-          path: true
+          push: true
           tags: |
             ghcr.io/PCDattt/homelab-golang-app:latest
