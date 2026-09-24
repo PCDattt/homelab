@@ -92,7 +92,7 @@ jobs:
       - name: Login to GHCR
         uses: docker/login-action@v4.6.0
         with:
-          registry: ghcr.io/PCDattt
+          registry: ghcr.io/pcdattt
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         
@@ -100,4 +100,4 @@ jobs:
         uses: docker/build-push-action@v7.4.0
         with:
           push: true
-          tags: sha-${{ github.sha }}
+          tags: ghcr.io/pcdattt/${{ github.event.repository.name }}:sha-${{ github.sha }}
