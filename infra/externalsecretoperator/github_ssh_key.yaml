@@ -14,13 +14,13 @@ spec:
       type: kubernetes.io/dockerconfigjson
       data:
         .dockerconfigjson: |
-        {
-          "auths": {
-            "ghcr.io": {
-              "auth": "{{ printf "%s" .key | b64enc }}"
+          {
+            "auths": {
+              "ghcr.io": {
+                "auth": "{{ printf "%s" .key | b64enc }}"
+              }
             }
           }
-        }
   data:
     - secretKey: key
       remoteRef:
