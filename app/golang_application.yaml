@@ -11,7 +11,6 @@ metadata:
   namespace: app
   labels:
     app.kubernetes.io/name: golang-application
-    prometheus.io/scrape: "true"
 spec:
   replicas: 1
   selector:
@@ -34,6 +33,8 @@ kind: Service
 metadata:
   name: golang-application
   namespace: app
+  labels:
+    prometheus.io/scrape: "true"
 spec:
   type: NodePort
   ports:
