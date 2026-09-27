@@ -21,8 +21,6 @@ spec:
       labels:
         app: golang-application
     spec:
-      imagePullSecrets:
-        - name: github-ssh-key
       containers:
         - name: golang-application
           image: ghcr.io/pcdattt/homelab:sha-cb2bcde3c044824837818d9d585ce09f3387ee26@sha256:d9681c1fea679e3181a40759b38b5914ef54139b30513b4fb8123745b4edd45a
