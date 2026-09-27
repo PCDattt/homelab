@@ -109,9 +109,8 @@ jobs:
           ref: 'infrastructure'
           fetch-depth: 0
 
-      - name: Change golang application yaml file
+      - name: Change image name for golang application yaml file
         run: |
-          # Safely updates the exact image key inside your Deployment spec
           yq -i '(select(.kind == "Deployment" and .metadata.name == "golang-application")).spec.template.spec.containers[0].image = "ghcr.io/pcdattt/homelab:sha-${{ github.sha }}"' app/golang-application.yaml
           
       - name: GitHub commit & push
@@ -121,3 +120,4 @@ jobs:
           message: 'chore: auto update docker image for golang application'
           branch: 'infrastructure'
           author_name: '${{ github.actor }}'
+          author_email: '${{ github.actor_id }}+${{ github.actor }}@://github.com'
