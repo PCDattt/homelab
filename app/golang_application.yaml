@@ -11,6 +11,7 @@ metadata:
   namespace: app
   labels:
     app.kubernetes.io/name: golang-application
+    prometheus.io/scrape: "true"
 spec:
   replicas: 1
   selector:
