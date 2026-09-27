@@ -117,7 +117,7 @@ jobs:
 
       - name: Change image name for golang application yaml file
         run: |
-          yq -i '(select(.kind == "Deployment" and .metadata.name == "golang-application")).spec.template.spec.containers[0].image = "ghcr.io/pcdattt/homelab:sha-${{ github.sha }}"' app/golang-application.yaml
+          yq -i '(select(.kind == "Deployment" and .metadata.name == "golang-application")).spec.template.spec.containers[0].image = "ghcr.io/pcdattt/homelab:sha-${{ github.sha }}"' app/golang_application.yaml
           
       - name: GitHub commit & push
         uses: actions-js/push@v1.6
