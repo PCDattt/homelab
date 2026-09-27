@@ -10,16 +10,16 @@ metadata:
   name: golang-application
   namespace: app
   labels:
-    app: golang-application
+    app.kubernetes.io/name: golang-application
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: golang-application
+      app.kubernetes.io/name: golang-application
   template:
     metadata:
       labels:
-        app: golang-application
+        app.kubernetes.io/name: golang-application
     spec:
       containers:
         - name: golang-application
@@ -39,7 +39,7 @@ spec:
     - name: http
       nodePort: 30004
       port: 8080
-      protocal: TCP
+      protocol: TCP
       targetPort: 8080
   selector:
     app.kubernetes.io/name: golang-application
