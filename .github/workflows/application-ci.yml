@@ -85,6 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+      contents: write
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4.4.1
@@ -101,3 +102,22 @@ jobs:
         with:
           push: true
           tags: ghcr.io/pcdattt/${{ github.event.repository.name }}:sha-${{ github.sha }}
+
+      - name: Checkout infrastructure branch
+        uses: actions/checkout@v7
+        with:
+          ref: 'infrastructure'
+          fetch-depth: 0
+
+      - name: Change golang application yaml file
+        run: |
+          # Safely updates the exact image key inside your Deployment spec
+          yq -i '(select(.kind == "Deployment" and .metadata.name == "golang-application")).spec.template.spec.containers[0].image = "ghcr.io/pcdattt/homelab:sha-${{ github.sha }}"' app/golang-application.yaml
+          
+      - name: GitHub commit & push
+        uses: actions-js/push@v1.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          message: 'chore: auto update docker image for golang application'
+          branch: 'infrastructure'
+          author_name: '${{ github.actor }}'
