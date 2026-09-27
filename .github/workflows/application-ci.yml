@@ -82,6 +82,11 @@ jobs:
         uses: golangci/golangci-lint-action@v9.3.0
 
   BuildPushDockerImages:
+    needs:
+      - Gitleaks
+      - Lint
+      - Trivy
+      - UnitTest
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -119,5 +124,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: 'chore: auto update docker image for golang application'
           branch: 'infrastructure'
-          author_name: '${{ github.actor }}'
-          author_email: '${{ github.actor_id }}+${{ github.actor }}@://github.com'
