@@ -24,6 +24,7 @@ data:
             regex: "true"
 
       - job_name: scaphandre-daemonset
+        fallback_scrape_protocal: PrometheusText0.0.4
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
