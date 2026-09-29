@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: scaphandre
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: scaphandre
+spec:
+  selector:
+    matchLabels:
+      name: scaphandre
+  template:
+    metadata:
+      labels:
+        name: scaphandre
+        prometheus.io/scrape: "true"
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+
+      containers:
+        - name: scaphandre
+          image: hubblo/scaphandre:1.0.3
+
+          ports:
+          - name: http
+            containerPort: 8080
+
+          args:
+            - prometheus
+            - --containers
+
+          volumeMounts:
+            - name: proc
+              mountPath: /proc
+
+            - name: powercap
+              mountPath: /sys/class/powercap
+
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: powercap
+          hostPath:
+            path: /sys/class/powercap
