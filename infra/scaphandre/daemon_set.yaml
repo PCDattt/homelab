@@ -27,6 +27,9 @@ spec:
         - name: scaphandre
           image: hubblo/scaphandre:1.0.3
 
+          securityContext:
+            privileged: true
+
           ports:
           - name: http
             containerPort: 8080
