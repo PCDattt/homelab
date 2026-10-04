@@ -1,0 +1,37 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: vault-unseal-keys
+  namespace: vault
+spec:
+  refreshInterval: "24h"
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: vault-unseal-keys
+  data:
+    - secretKey: key-1
+      remoteRef:
+        key: unseal_key
+        property: key_1
+
+    - secretKey: key-2
+      remoteRef:
+        key: unseal_key
+        property: key_2
+
+    - secretKey: key-3
+      remoteRef:
+        key: unseal_key
+        property: key_3
+
+    - secretKey: key-4
+      remoteRef:
+        key: unseal_key
+        property: key_4
+
+    - secretKey: key-5
+      remoteRef:
+        key: unseal_key
+        property: key_5
