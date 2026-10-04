@@ -15,12 +15,12 @@ spec:
       initContainers:
         - name: wait-for-vault
           image: registry.k8s.io/kubectl:v1.31.0
-          command:
-            - /bin/sh
-            - -c
-            - |
-              echo "Waiting for vault pod to running"
-              kubectl wait --namespace=vault --for=condition=Initialized pod/vault-0 --timeout=1200s
+          args:
+            - wait
+            - --namespace=vault
+            - --for=condition=Initialized
+            - pod/vault-0
+            - --timeout=1200s
 
       containers:
         - name: unseal-vault
