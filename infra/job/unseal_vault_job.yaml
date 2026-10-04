@@ -14,7 +14,7 @@ spec:
 
       initContainers:
         - name: wait-for-vault
-          image: bitnami/kubectl:sha256-97692a3102334d4c1bfc9f4d3cfedff1688fa362a76032bf184c990bfff5499d
+          image: registry.k8s.io/kubectl:v1.31.0
           command:
             - /bin/sh
             - -c
