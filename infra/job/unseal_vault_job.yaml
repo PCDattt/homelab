@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: unseal-vault
+  namespace: job
+spec:
+  template:
+    metadata:
+      labels:
+        app: unseal-vault
+    spec:
+      serviceAccountName: unseal-vault
+      restartPolicy: OnFailure
+
+      initContainers:
+        - name: wait-for-vault
+          image: bitnami/kubectl:sha256-7b1b3eccecf6d79fc29924b5f87fdf67dcf323936fd6760885965859a9778602
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for vault pod to running"
+              kubectl wait --namespace=vault --for=condition=Initialized pod/vault-0 --timeout=1200s
+
+      containers:
+        - name: unseal-vault
+          image: hashicorp/vault:1.15
+          env:
+            - name: VAULT_ADDR
+              value: "http://vault.vault.svc.cluster.local:8200"
+            - name: UNSEAL_KEY_1
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key:  key-1
+            - name: UNSEAL_KEY_2
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key:  key-2
+            - name: UNSEAL_KEY_3
+              valueFrom:
+                secretKeyRef:
+                  name: vault-unseal-keys
+                  key:  key-3
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Vault is up, starting to unseal"
+              vault operator unseal $UNSEAL_KEY_1
+              vault operator unseal $UNSEAL_KEY_2
+              vault operator unseal $UNSEAL_KEY_3
+              echo "Unseal commands already ran"
