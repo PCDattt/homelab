@@ -23,6 +23,8 @@ spec:
           operator: Exists
           effect: NoSchedule
 
+      imagePullSecrets:
+        - name: ghcr-oci-registry
       containers:
         - image: ghcr.io/pcdattt/homelab/disk-usage:v0.7
           name: disk-usage
