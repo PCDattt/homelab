@@ -34,11 +34,11 @@ spec:
             containerPort: 8080
 
           args:
-            - --config /disk-usage-exporter.yaml
+            - --config /config/disk-usage-exporter.yaml
 
           volumeMounts:
             - name: config
-              mountPath: /
+              mountPath: /config
       volumes:
         - name: config
           configMap:
