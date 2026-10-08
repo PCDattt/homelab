@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disk-usage-exporter
+  namespace: monitoring
+data:
+  disk-usage-exporter.yaml: |
+    analyzed-path: /
+    dir-level: 2
+    ignore-dirs:
+    - /proc
+    - /dev
+    - /sys
+    - /run
