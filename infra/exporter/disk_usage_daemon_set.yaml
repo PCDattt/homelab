@@ -28,6 +28,7 @@ spec:
       containers:
         - image: ghcr.io/pcdattt/homelab/disk-usage:v0.7
           name: disk-usage
+          imagePullPolicy: Always
 
           ports:
           - name: http
