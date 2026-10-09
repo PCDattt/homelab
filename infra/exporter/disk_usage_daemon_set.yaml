@@ -40,7 +40,16 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+
+            - name: host-root
+              mountPath: /host
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: disk-usage-exporter
+
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
