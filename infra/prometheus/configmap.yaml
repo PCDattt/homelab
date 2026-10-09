@@ -23,7 +23,7 @@ data:
             action: keep
             regex: "true"
 
-      - job_name: scaphandre-daemonset
+      - job_name: exporter-daemonset
         fallback_scrape_protocol: PrometheusText0.0.4
         kubernetes_sd_configs:
           - role: pod

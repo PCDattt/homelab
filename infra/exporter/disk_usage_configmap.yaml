@@ -6,6 +6,7 @@ metadata:
 data:
   disk-usage-exporter.yaml: |
     analyzed-path: /
+    bind-address: 0.0.0.0:8080
     dir-level: 2
     ignore-dirs:
     - /proc
