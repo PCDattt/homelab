@@ -7,7 +7,7 @@ data:
   disk-usage-exporter.yaml: |
     analyzed-path: /host # mount from host root /
     bind-address: 0.0.0.0:8080
-    dir-level: 2
+    dir-level: 1
     ignore-dirs:
     - /proc
     - /dev
