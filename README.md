@@ -71,8 +71,6 @@ The infrastructure runs on physical hardware, with Tailscale providing connectiv
 | Container registry | GitHub Container Registry (GHCR) |
 | Deployment model | GitOps with Argo CD |
 
-The cluster runs on physical machines rather than managed Kubernetes services, providing hands-on experience with node provisioning, networking, resource constraints, and infrastructure troubleshooting.
-
 ## Technology Stack
 
 ### Kubernetes and Infrastructure
