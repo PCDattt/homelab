@@ -1,55 +1,55 @@
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: disk-usage
-  namespace: monitoring
-  labels:
-    app.kubernetes.io/name: disk-usage
-spec:
-  selector:
-    matchLabels:
-      name: disk-usage
-  template:
-    metadata:
-      labels:
-        name: disk-usage
-        prometheus.io/scrape: "true"
-    spec:
-      tolerations:
-        - key: node-role.kubernetes.io/control-plane
-          operator: Exists
-          effect: NoSchedule
-        - key: node-role.kubernetes.io/master
-          operator: Exists
-          effect: NoSchedule
-
-      imagePullSecrets:
-        - name: ghcr-oci-registry
-      containers:
-        - image: ghcr.io/pcdattt/homelab/disk-usage:v0.7
-          name: disk-usage
-          imagePullPolicy: Always
-
-          ports:
-          - name: http
-            containerPort: 8080
-
-          args:
-            - --config=/config/disk-usage-exporter.yaml
-
-          volumeMounts:
-            - name: config
-              mountPath: /config
-
-            - name: host-root
-              mountPath: /host
-              readOnly: true
-      volumes:
-        - name: config
-          configMap:
-            name: disk-usage-exporter
-
-        - name: host-root
-          hostPath:
-            path: /
-            type: Directory
+# apiVersion: apps/v1
+# kind: DaemonSet
+# metadata:
+#   name: disk-usage
+#   namespace: monitoring
+#   labels:
+#     app.kubernetes.io/name: disk-usage
+# spec:
+#   selector:
+#     matchLabels:
+#       name: disk-usage
+#   template:
+#     metadata:
+#       labels:
+#         name: disk-usage
+#         prometheus.io/scrape: "true"
+#     spec:
+#       tolerations:
+#         - key: node-role.kubernetes.io/control-plane
+#           operator: Exists
+#           effect: NoSchedule
+#         - key: node-role.kubernetes.io/master
+#           operator: Exists
+#           effect: NoSchedule
+#
+#       imagePullSecrets:
+#         - name: ghcr-oci-registry
+#       containers:
+#         - image: ghcr.io/pcdattt/homelab/disk-usage:v0.7
+#           name: disk-usage
+#           imagePullPolicy: Always
+#
+#           ports:
+#           - name: http
+#             containerPort: 8080
+#
+#           args:
+#             - --config=/config/disk-usage-exporter.yaml
+#
+#           volumeMounts:
+#             - name: config
+#               mountPath: /config
+#
+#             - name: host-root
+#               mountPath: /host
+#               readOnly: true
+#       volumes:
+#         - name: config
+#           configMap:
+#             name: disk-usage-exporter
+#
+#         - name: host-root
+#           hostPath:
+#             path: /
+#             type: Directory
