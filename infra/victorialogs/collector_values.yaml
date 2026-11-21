@@ -1,0 +1,24 @@
+nameOverride: vlc
+
+remoteWrite:
+  - url: http://100.85.60.21:30007
+
+  # Buffer logs when VictoriaLogs is unavailable.
+  # Limit disk usage to 2 GiB.
+  # maxDiskUsagePerURL: 1GB
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+collector:
+  includePodLabels: true
+  includePodAnnotations: false
+  includeNodeLabels: true
+
+  # Exclude collector's own logs to avoid unnecessary ingestion.
+  # excludeFilter: 'kubernetes.pod_name:=%{HOSTNAME}'

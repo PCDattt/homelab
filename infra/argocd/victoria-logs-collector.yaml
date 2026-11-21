@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-logs-collector
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    # Official VictoriaMetrics Helm repository
+    - repoURL: https://victoriametrics.github.io/helm-charts/
+      chart: victoria-logs-collector
+      targetRevision: 0.3.9
+      helm:
+        releaseName: vlc
+        valueFiles:
+          - $values/infra/victorialogs/collector_values.yaml
+
+    # Your Git repository containing Helm values
+    - repoURL: https://github.com/PCDattt/homelab.git
+      targetRevision: infrastructure
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: logging
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
