@@ -23,7 +23,7 @@ spec:
           - name: http
             containerPort: 9100
             hostPort: 9100
-            protocal: TCP
+            protocol: TCP
           volumeMounts:
             - name: proc
               readOnly: true
