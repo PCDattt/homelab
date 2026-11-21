@@ -8,11 +8,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      name: victorialogs
+      app.kubernetes.io/name: victorialogs
   template:
     metadata:
       labels:
-        name: victorialogs
+        app.kubernetes.io/name: victorialogs
         prometheus.io/scrape: "true"
     spec:
       containers:
