@@ -14,35 +14,36 @@ spec:
       labels:
         name: node-exporter
         prometheus.io/scrape: "true"
-    containers:
-      - image:  prom/node-exporter:v1.13.1
-        name: node-exporter
+    spec:
+      containers:
+        - image:  prom/node-exporter:v1.13.1
+          name: node-exporter
 
-        ports:
-        - name: http
-          containerPort: 9100
-          hostPort: 9100
-          protocal: TCP
-        volumeMounts:
-          - name: proc
-            readOnly: true
-            mountPath: /host/proc
-          - name: sys
-            readOnly: true
-            mountPath: /host/sys
-          - name: root
-            readOnly: true
-            mountPath: /host/root
-    volumes:
-      - name: proc
-        hostPath:
-          path: /proc
-          type: ''
-      - name: sys
-        hostPath:
-          path: /sys
-          type: ''
-      - name: root
-        hostPath:
-          path: /
-          type: ''
+          ports:
+          - name: http
+            containerPort: 9100
+            hostPort: 9100
+            protocal: TCP
+          volumeMounts:
+            - name: proc
+              readOnly: true
+              mountPath: /host/proc
+            - name: sys
+              readOnly: true
+              mountPath: /host/sys
+            - name: root
+              readOnly: true
+              mountPath: /host/root
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+            type: ''
+        - name: sys
+          hostPath:
+            path: /sys
+            type: ''
+        - name: root
+          hostPath:
+            path: /
+            type: ''
