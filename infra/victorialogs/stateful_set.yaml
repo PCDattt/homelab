@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: victorialogs
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: victorialogs
+spec:
+  selector:
+    matchLabels:
+      name: victorialogs
+  template:
+    metadata:
+      labels:
+        name: victorialogs
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+        - image:  victoriametrics/victoria-logs:v1.54.0
+          name: victorialogs
+          args:
+            - "-envflag.enable=true"
+          envFrom:
+            - configMapRef:
+                name: victorialogs
+          ports:
+          - name: http
+            containerPort: 9428
+            hostPort: 9428
+            protocol: TCP
+          volumeMounts:
+            - name: storage
+              mountPath: /victorialogs
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: victorialogs

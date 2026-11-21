@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: victorialogs
+  namespace: monitoring
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 9428
+      targetPort: 9428
+      protocol: TCP
+      nodePort: 30007
+  selector:
+    app.kubernetes.io/name: victorialogs
