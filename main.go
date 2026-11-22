@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -30,8 +31,22 @@ func main() {
 	http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
 	fmt.Println("Server started at localhost:8080")
 	http.HandleFunc("/", greet)
+	go generateLog()
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Printf("Error ListenAndServe %v\n", err)
+	}
+}
+
+func generateLog() {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+			case <-ticker.C:
+				for i := 0; i < 30; i++ {
+					log.Println("Log from application")
+			}
+		}
 	}
 }
