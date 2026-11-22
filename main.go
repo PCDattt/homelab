@@ -41,12 +41,9 @@ func main() {
 func generateLog() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
-	for {
-		select {
-			case <-ticker.C:
-				for i := 0; i < 30; i++ {
-					log.Println("Log from application")
-			}
+	for range ticker.C {
+		for i := 0; i < 30; i++ {
+			log.Println("Log from application")
 		}
 	}
 }
