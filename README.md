@@ -1,237 +1,328 @@
-# Homelab — Kubernetes, GitOps & Observability
+# Homelab: Kubernetes, GitOps & Observability
 
-A bare-metal Kubernetes homelab built on two old laptops running Ubuntu 26.04. The project focuses on learning and operating cloud-native infrastructure, automating application delivery, managing secrets securely, and building an observable Kubernetes environment.
+A self-hosted Kubernetes homelab running on two repurposed Ubuntu laptops. The project is a practical environment for learning Linux infrastructure, Kubernetes operations, GitOps delivery, secrets management, and observability.
 
-The infrastructure runs on physical hardware, with Tailscale providing connectivity between nodes. Kubernetes is bootstrapped using `kubeadm`, while Argo CD manages application deployments through GitOps.
+The cluster is bootstrapped with `kubeadm`, uses `containerd` as its runtime, and connects its nodes over Tailscale. Workloads and infrastructure configuration are maintained in Git and reconciled by Argo CD.
+
+The observability stack covers both metrics and logs:
+
+- **Prometheus** collects infrastructure and application metrics.
+- **Grafana** provides dashboards and exploration.
+- **VictoriaLogs** stores and queries log data.
+- **VictoriaLogs Collector (VLC)** collects Kubernetes logs and forwards them to VictoriaLogs.
+- **Disk Usage Exporter** and **Scaphandre** expose node-level resource metrics.
+
+This is a learning environment built on constrained physical hardware, not a production high-availability cluster.
 
 ## Architecture
 
 ```text
-                  Developer
-                      |
-                      v
-                GitHub Repository
-                      |
-                      v
-              GitHub Actions CI/CD
-              +------------------+
-              | Lint             |
-              | Gitleaks         |
-              | Trivy Scan       |
-              | Build Image      |
-              | Push to GHCR     |
-              +------------------+
-                      |
-                      v
-              GitOps Configuration
-                      |
-                      v
-                  Argo CD
-                      |
-                      v
-             Kubernetes Cluster
-              +---------------------------+
-              |                           |
-              v                           v
-         Laptop Node 1               Laptop Node 2
-         Ubuntu 26.04                Ubuntu 26.04
-         12 GB RAM                   8 GB RAM
-              |                           |
-              +------------+--------------+
-                           |
-                      Tailscale
-                           |
-              +------------+--------------+
-              |            |              |
-              v            v              v
-           Vault        Prometheus      Grafana
-              |
-              v
-      External Secrets Operator
+                         Developer
+                             |
+                             v
+                      GitHub Repository
+                             |
+                             v
+                       GitHub Actions
+                  +-----------------------+
+                  | Lint / validation     |
+                  | Gitleaks              |
+                  | Trivy                 |
+                  | Build container image|
+                  | Push image to GHCR    |
+                  +-----------------------+
+                             |
+                             v
+                    GitOps configuration
+                             |
+                             v
+                          Argo CD
+                             |
+                             v
+                    Kubernetes cluster
+                  +-----------------------+
+                  |                       |
+             Laptop node 1           Laptop node 2
+             Ubuntu 26.04            Ubuntu 26.04
+             12 GB RAM               8 GB RAM
+                  |                       |
+                  +-----------+-----------+
+                              |
+                          Tailscale
+                              |
+          +-------------------+--------------------+
+          |                   |                    |
+          v                   v                    v
+     Secrets              Metrics                Logs
+   +-----------+       +-------------+      +-------------+
+   |  Vault    |       | Prometheus  |      |     VLC     |
+   +-----------+       +-------------+      | Log collector|
+          |                   |             +------+------+
+          v                   v                    |
+   +-----------+          Grafana                 v
+   |    ESO    |                         +------------------+
+   +-----------+                         |  VictoriaLogs    |
+                                         | storage & query  |
+                                         +------------------+
 
-      Node-level monitoring:
-      - Disk Usage Exporter
-      - Scaphandre
+       Node-level metrics: Disk Usage Exporter, Scaphandre
 ```
 
-*Note: The diagram illustrates the logical components and relationships, not the exact network topology or pod placement.*
+The diagram shows logical data and control-plane relationships. It is not intended to describe exact pod placement or network topology.
 
-## Infrastructure
+## Hardware and infrastructure
 
-| Component | Description |
+| Component | Configuration |
 |---|---|
-| Physical hardware | Two repurposed laptops |
+| Nodes | 2 repurposed laptops |
 | Operating system | Ubuntu 26.04 |
 | CPU | 8 CPU cores per node |
-| Memory | 12 GB RAM on one node; 8 GB RAM on the other |
-| Kubernetes | kubeadm-based cluster |
+| Memory | 12 GB on one node; 8 GB on the other |
+| Kubernetes | `kubeadm` |
+| Container runtime | `containerd` |
 | Node connectivity | Tailscale |
-| Container runtime | Containerd |
 | Source control | GitHub |
 | Container registry | GitHub Container Registry (GHCR) |
-| Deployment model | GitOps with Argo CD |
+| Deployment model | Argo CD GitOps |
 
-## Technology Stack
+The control-plane node is also allowed to run workloads, making better use of the limited resources available in this two-node lab.
 
-### Kubernetes and Infrastructure
+## Technology stack
 
-- **Kubernetes / kubeadm** — Cluster bootstrap and workload orchestration.
-- **Ubuntu Server** — Bare-metal operating system.
-- **Tailscale** — Connectivity between machines over a private network.
-- **Argo CD** — Declarative application deployment and GitOps reconciliation.
+### Kubernetes and platform
 
-### CI/CD and Container Security
+| Technology | Role |
+|---|---|
+| Kubernetes | Container orchestration and workload management |
+| kubeadm | Cluster bootstrap and lifecycle management |
+| Ubuntu | Host operating system |
+| containerd | Kubernetes container runtime |
+| Tailscale | Private connectivity between the nodes |
+| Argo CD | GitOps reconciliation and application deployment |
 
-- **GitHub Actions** — Automated CI/CD workflows.
-- **Go tooling** — Linting and building Go applications where applicable.
-- **Gitleaks** — Detects hardcoded secrets and credentials in source code and Git history.
-- **Trivy** — Vulnerability scanning.
-- **GitHub Container Registry (GHCR)** — Container image storage.
+### CI/CD and supply-chain checks
 
-### Secrets Management
+| Technology | Role |
+|---|---|
+| GitHub Actions | Automated validation and image build workflow |
+| golangci-lint / Go tooling | Go source-code quality checks |
+| Gitleaks | Secret detection |
+| Trivy | Container and dependency vulnerability scanning |
+| GHCR | Container image registry |
 
-- **HashiCorp Vault** — Centralized secrets management.
-- **External Secrets Operator (ESO)** — Synchronizes secrets from external secret-management systems into Kubernetes.
-- **Automated Vault unseal job** — Automates the Vault unseal workflow.
+### Secrets management
 
-### Observability and Monitoring
+| Technology | Role |
+|---|---|
+| HashiCorp Vault | Central secrets backend |
+| External Secrets Operator (ESO) | Synchronizes external secrets into Kubernetes Secrets |
+| Vault unseal Job | Automates the configured Vault unseal workflow |
 
-- **Prometheus** — Metrics collection and time-series monitoring.
-- **Grafana** — Metrics visualization and dashboards.
-- **Disk Usage Exporter** — Exposes filesystem and disk-usage metrics.
-- **Scaphandre** — Monitors power consumption and energy-related metrics at the node level.
+Secrets are kept out of application manifests and source control. The security of automated unsealing depends on how unseal material and the identity authorized to use it are protected.
 
-## CI/CD Pipeline
+### Observability
 
-The CI/CD pipeline automates the process of validating, scanning, building, and publishing container images.
+| Technology | Role |
+|---|---|
+| Prometheus | Metrics collection and time-series storage |
+| Grafana | Dashboards and metrics/log exploration |
+| VictoriaLogs | Centralized log storage and querying |
+| VictoriaLogs Collector (VLC) | Kubernetes log collection and forwarding |
+| Disk Usage Exporter | Filesystem and disk-usage metrics |
+| Scaphandre | Node-level power and energy metrics |
+
+## Log collection with VictoriaLogs and VLC
+
+The logging pipeline is designed around a collector/storage separation:
 
 ```text
-       Code Changes
-            |
-            v
-       GitHub Actions
-            |
-            v
-       Lint Source Code
-            |
-            v
-       Gitleaks Secret Scan
-            |
-            v
-       Trivy Security Scan
-            |
-            v
-       Build Container Image
-            |
-            v
-       Push Image to GHCR
-            |
-            v
-       Update GitOps Configuration
-            |
-            v
-       Argo CD Reconciliation
-            |
-            v
-       Kubernetes Deployment
+Kubernetes workloads
+        |
+        | container stdout / stderr
+        v
+VictoriaLogs Collector (VLC)
+        |
+        | collected log records
+        v
+VictoriaLogs
+        |
+        +----> LogsQL querying via VictoriaLogs APIs
+        |
+        +----> Grafana exploration (when the VictoriaLogs data source is configured)
 ```
 
-Pipeline responsibilities:
+**VictoriaLogs** is the log database: it receives, stores, indexes, and serves queries over ingested log records.
 
-1. **Lint:** Detect source-code quality issues before publishing an image.
-2. **Security scanning:** Use Trivy to identify known vulnerabilities.
-3. **Build:** Package the application into a container image.
-4. **Publish:** Push the image to GitHub Container Registry.
-5. **Deploy:** Use Argo CD to reconcile Kubernetes resources with the desired state stored in Git.
+**VictoriaLogs Collector (VLC)** is the collection layer: it runs in the Kubernetes environment, reads workload logs, enriches them with Kubernetes metadata, and ships them to the VictoriaLogs ingestion endpoint.
 
-The GitOps configuration is the source of truth for application deployment. This separates application build and image publication from the process of deploying workloads into Kubernetes.
+Keeping collection separate from storage makes the responsibilities easier to reason about:
 
-## Secrets Management
+- VLC is responsible for getting logs out of workloads and delivering them.
+- VictoriaLogs is responsible for durable log storage and query execution.
+- Grafana can provide a common interface for metrics and logs when the corresponding data source is configured.
 
-Vault and External Secrets Operator provide a foundation for managing application secrets without making plaintext credentials part of the application deployment workflow.
+The collector is deployed using the VictoriaMetrics Helm chart repository. The repository's deployment configuration has used the `victoria-logs-collector` chart (chart version `0.3.9`).
 
-The current setup includes:
+VictoriaLogs exposes its HTTP API on port `9428` by default. The actual in-cluster Service name, namespace, persistence configuration, retention policy, and collector output URL should be taken from the manifests in `infra/`; they are intentionally not hard-coded here because they can change independently of this overview.
 
-- Vault as the central secrets backend.
-- External Secrets Operator for synchronizing secrets into Kubernetes.
-- An automated job for Vault unseal operations.
+Useful upstream documentation:
 
-This setup provides practical experience with secret synchronization, Kubernetes service accounts and access control, and the operational requirements of running a secrets-management system.
+- [VictoriaLogs documentation](https://docs.victoriametrics.com/victorialogs/)
+- [VictoriaLogs Collector documentation](https://docs.victoriametrics.com/victorialogs/vlagent/)
+- [VictoriaMetrics Helm charts](https://github.com/VictoriaMetrics/helm-charts)
 
-**Security note:** Automated unsealing must be designed carefully. The security of the unseal mechanism depends on where unseal material is stored, how it is accessed, and which identities are authorized to use it. Automation should not eliminate Vault's security boundary.
+## CI/CD and GitOps workflow
 
-## Observability
+The delivery workflow separates building an application image from deploying it to the cluster.
 
-Prometheus collects metrics from the homelab, while Grafana provides dashboards for monitoring system behavior.
+```text
+Code change
+    |
+    v
+GitHub Actions
+    |
+    +--> Lint and validate
+    |
+    +--> Scan for secrets (Gitleaks)
+    |
+    +--> Scan for vulnerabilities (Trivy)
+    |
+    +--> Build container image
+    |
+    +--> Push image to GHCR
+              |
+              v
+      GitOps configuration
+              |
+              v
+           Argo CD
+              |
+              v
+       Kubernetes cluster
+```
 
-The current monitoring components include:
+The intended responsibilities are:
 
-| Component | Purpose |
+1. **Validate** source code and configuration before publishing.
+2. **Scan** for accidentally committed secrets and known vulnerabilities.
+3. **Build** the application container image.
+4. **Publish** the image to GHCR.
+5. **Reconcile** the desired Kubernetes state through Argo CD.
+
+Git remains the source of truth for declarative deployment configuration. Argo CD continuously compares the live cluster state with the desired state stored in the repository.
+
+## Secrets management workflow
+
+Vault and ESO provide a workflow for consuming external secrets without committing plaintext credentials to Git.
+
+```text
+HashiCorp Vault
+       |
+       | authenticated secret retrieval
+       v
+External Secrets Operator
+       |
+       | reconcile
+       v
+Kubernetes Secret
+       |
+       v
+Application Pod
+```
+
+The Vault unseal Job automates the configured unseal procedure. This is an operational convenience, not a replacement for a secure key-management design. Unseal material should not be exposed in Git, container images, ordinary ConfigMaps, or broadly accessible logs.
+
+## Metrics and monitoring
+
+Prometheus collects metrics from the cluster and supporting exporters. Grafana is used to inspect trends and troubleshoot resource usage.
+
+Current monitoring components include:
+
+| Component | What it helps observe |
 |---|---|
-| Prometheus | Metrics collection and storage |
+| Prometheus | Scraped metrics and time-series data |
 | Grafana | Dashboards and visualization |
-| Disk Usage Exporter | Filesystem and disk-usage visibility |
-| Scaphandre | Node-level energy and power-consumption monitoring |
+| Disk Usage Exporter | Filesystem capacity and disk consumption |
+| Scaphandre | Host and process energy consumption |
+| VictoriaLogs | Log volume, ingestion, storage, and query behavior |
 
-These components help investigate resource consumption and understand how infrastructure workloads behave on resource-constrained hardware.
+For VictoriaLogs, its own metrics endpoint can be scraped by Prometheus. Keep the scrape target and labels aligned with the actual VictoriaLogs Service and deployment configuration.
 
-The monitoring environment also serves as a foundation for future work on alerting, centralized logging, service discovery, and Kubernetes observability.
+## Repository layout
 
-## Design Principles
+```text
+.
+├── .github/
+│   └── workflows/       # CI workflows
+├── app/                 # Go application / exporter source
+├── infra/               # Kubernetes and Helm deployment configuration
+├── main.go              # Go application entry point
+├── main_test.go         # Go tests
+├── go.mod
+├── .golangci.yaml
+└── README.md
+```
 
-- **Infrastructure as code:** Keep infrastructure and deployment configuration version-controlled where practical.
-- **GitOps first:** Use Argo CD to manage application deployment and continuously reconcile the desired state.
-- **Automated delivery:** Run validation and security scanning before publishing container images.
-- **Secrets outside source control:** Use Vault and External Secrets Operator for secret management.
-- **Observable systems:** Collect metrics to understand resource usage and diagnose operational problems.
-- **Bare-metal learning:** Operate Kubernetes directly on physical machines and learn from real infrastructure constraints.
-- **Incremental improvement:** Introduce new components through small, testable changes rather than deploying an entire platform at once.
+The exact manifests and application behavior are defined by the source files. This README is an architectural overview; deployment-specific values should be verified against the corresponding files under `infra/`.
 
-## Current Status
+## Operating principles
 
-The following components are already running in the homelab:
+- **GitOps first:** keep the desired cluster state in Git and let Argo CD reconcile it.
+- **Automate delivery:** validate and scan changes before publishing images.
+- **Keep secrets out of Git:** retrieve secrets from Vault through ESO.
+- **Separate concerns:** use VLC for log collection and VictoriaLogs for log storage and querying.
+- **Observe the platform:** use metrics and logs together when investigating failures.
+- **Design for constrained hardware:** understand CPU, memory, disk I/O, and network trade-offs before adding workloads.
+- **Practice failure recovery:** document what happens when a node, pod, storage path, or dependency becomes unavailable.
+- **Make changes incrementally:** introduce infrastructure components in small, reviewable steps.
 
-- [x] Two Ubuntu 26.04 bare-metal nodes
+## Current status
+
+The following reflects the project state described by the repository overview and the current homelab configuration. Check the manifests for the exact deployed release and settings.
+
+- [x] Two Ubuntu-based laptop nodes
 - [x] Kubernetes cluster bootstrapped with kubeadm
-- [x] Tailscale connectivity
-- [x] GitHub Actions CI/CD pipeline
-- [x] Source-code linting
+- [x] Tailscale node connectivity
+- [x] containerd runtime
+- [x] GitHub Actions CI workflow
+- [x] Go linting and source validation
 - [x] Gitleaks secret scanning
-- [x] Trivy security scanning
+- [x] Trivy vulnerability scanning
 - [x] Container image build and publication to GHCR
 - [x] Argo CD GitOps deployment
 - [x] HashiCorp Vault
 - [x] External Secrets Operator
-- [x] Automated Vault unseal job
+- [x] Automated Vault unseal workflow
 - [x] Prometheus
+- [x] Grafana
 - [x] Disk Usage Exporter
 - [x] Scaphandre
-- [x] Grafana
+- [x] VictoriaLogs
+- [x] VictoriaLogs Collector (VLC)
 
-## Future Improvements
+## Possible next steps
 
-Planned improvements may include:
-
-- [ ] Add centralized logging with Grafana Loki and Grafana Alloy.
-- [ ] Improve Prometheus alerting with Prometheus Operator, `PrometheusRule`, and actionable runbooks.
-- [ ] Introduce durable, cluster-aware storage with Longhorn and evaluate its failure modes.
-- [ ] Practice node failure, workload recovery, storage recovery, and Kubernetes upgrade scenarios.
-- [ ] Add TLS certificate automation with cert-manager.
-- [ ] Explore Gateway API for Kubernetes ingress and traffic management.
-- [ ] Improve observability dashboards and resource-capacity monitoring.
-- [ ] Document disaster recovery procedures, including Vault recovery and etcd snapshot restoration.
-- [ ] Evaluate high-availability trade-offs within the constraints of two physical nodes.
+- Add actionable Prometheus alert rules and link each alert to a runbook.
+- Define and test VictoriaLogs retention, disk-capacity limits, and backup/recovery procedures.
+- Verify that VLC checkpoints and buffering behave correctly across Pod restarts.
+- Test log delivery during VictoriaLogs unavailability and collector restarts.
+- Add dashboards for ingestion rate, query latency, storage growth, and collector health.
+- Evaluate persistent-volume behavior and the impact of disk I/O contention on stateful workloads.
+- Practice node failure, workload rescheduling, and recovery from a damaged or unavailable data directory.
+- Automate TLS certificate lifecycle management.
+- Explore Kubernetes Gateway API and network-policy enforcement.
+- Document Vault recovery and etcd snapshot restoration procedures.
 
 ## Goals
 
-This project is an ongoing practical environment for exploring:
+This homelab is an ongoing environment for developing practical skills in:
 
 - Kubernetes internals and cluster operations.
-- Cloud-native application delivery and GitOps.
-- Infrastructure automation and platform engineering.
-- Secrets management and security practices.
-- Metrics collection, observability, and troubleshooting.
 - Linux systems, networking, and resource management.
-- Stateful workloads, persistent storage, and failure recovery.
+- GitOps, CI/CD, and platform engineering.
+- Secrets management and workload security.
+- Metrics, centralized logging, and observability.
+- Stateful services, storage engines, and disk I/O behavior.
+- Failure analysis, reliability, and operational recovery.
 
-The long-term goal is to build a reliable, reproducible, and observable platform while developing the systems knowledge required to contribute to cloud-native infrastructure and open-source projects.
+The long-term goal is to build a reproducible and observable platform while developing the systems knowledge needed to contribute to cloud-native infrastructure and open-source observability projects.
