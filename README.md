@@ -9,10 +9,8 @@ The observability stack covers both metrics and logs:
 - **Prometheus** collects infrastructure and application metrics.
 - **Grafana** provides dashboards and exploration.
 - **VictoriaLogs** stores and queries log data.
-- **VictoriaLogs Collector (VLC)** collects Kubernetes logs and forwards them to VictoriaLogs.
-- **Disk Usage Exporter** and **Scaphandre** expose node-level resource metrics.
-
-This is a learning environment built on constrained physical hardware, not a production high-availability cluster.
+- **VictoriaLogs Collector** collects Kubernetes logs and forwards them to VictoriaLogs.
+- **Node Exporter** and **Scaphandre** expose node-level resource metrics.
 
 ## Architecture
 
@@ -65,16 +63,14 @@ This is a learning environment built on constrained physical hardware, not a pro
                                          | storage & query  |
                                          +------------------+
 
-       Node-level metrics: Disk Usage Exporter, Scaphandre
+       Node-level metrics: Node Exporter, Scaphandre
 ```
-
-The diagram shows logical data and control-plane relationships. It is not intended to describe exact pod placement or network topology.
 
 ## Hardware and infrastructure
 
 | Component | Configuration |
 |---|---|
-| Nodes | 2 repurposed laptops |
+| Nodes | 2 old laptops |
 | Operating system | Ubuntu 26.04 |
 | CPU | 8 CPU cores per node |
 | Memory | 12 GB on one node; 8 GB on the other |
@@ -127,8 +123,8 @@ Secrets are kept out of application manifests and source control. The security o
 | Prometheus | Metrics collection and time-series storage |
 | Grafana | Dashboards and metrics/log exploration |
 | VictoriaLogs | Centralized log storage and querying |
-| VictoriaLogs Collector (VLC) | Kubernetes log collection and forwarding |
-| Disk Usage Exporter | Filesystem and disk-usage metrics |
+| VictoriaLogs Collector | Kubernetes log collection and forwarding |
+| Node Exporter | Node metrics |
 | Scaphandre | Node-level power and energy metrics |
 
 ## Log collection with VictoriaLogs and VLC
@@ -140,7 +136,7 @@ Kubernetes workloads
         |
         | container stdout / stderr
         v
-VictoriaLogs Collector (VLC)
+VictoriaLogs Collector
         |
         | collected log records
         v
@@ -153,7 +149,7 @@ VictoriaLogs
 
 **VictoriaLogs** is the log database: it receives, stores, indexes, and serves queries over ingested log records.
 
-**VictoriaLogs Collector (VLC)** is the collection layer: it runs in the Kubernetes environment, reads workload logs, enriches them with Kubernetes metadata, and ships them to the VictoriaLogs ingestion endpoint.
+**VictoriaLogs Collector** is the collection layer: it runs in the Kubernetes environment, reads workload logs, enriches them with Kubernetes metadata, and ships them to the VictoriaLogs ingestion endpoint.
 
 Keeping collection separate from storage makes the responsibilities easier to reason about:
 
@@ -161,15 +157,7 @@ Keeping collection separate from storage makes the responsibilities easier to re
 - VictoriaLogs is responsible for durable log storage and query execution.
 - Grafana can provide a common interface for metrics and logs when the corresponding data source is configured.
 
-The collector is deployed using the VictoriaMetrics Helm chart repository. The repository's deployment configuration has used the `victoria-logs-collector` chart (chart version `0.3.9`).
-
-VictoriaLogs exposes its HTTP API on port `9428` by default. The actual in-cluster Service name, namespace, persistence configuration, retention policy, and collector output URL should be taken from the manifests in `infra/`; they are intentionally not hard-coded here because they can change independently of this overview.
-
-Useful upstream documentation:
-
-- [VictoriaLogs documentation](https://docs.victoriametrics.com/victorialogs/)
-- [VictoriaLogs Collector documentation](https://docs.victoriametrics.com/victorialogs/vlagent/)
-- [VictoriaMetrics Helm charts](https://github.com/VictoriaMetrics/helm-charts)
+The collector is deployed using the VictoriaMetrics Helm chart repository. The repository's deployment configuration has used the `victoria-logs-collector` chart.
 
 ## CI/CD and GitOps workflow
 
@@ -242,11 +230,9 @@ Current monitoring components include:
 |---|---|
 | Prometheus | Scraped metrics and time-series data |
 | Grafana | Dashboards and visualization |
-| Disk Usage Exporter | Filesystem capacity and disk consumption |
+| Node Exporter | CPU, ram, disk |
 | Scaphandre | Host and process energy consumption |
 | VictoriaLogs | Log volume, ingestion, storage, and query behavior |
-
-For VictoriaLogs, its own metrics endpoint can be scraped by Prometheus. Keep the scrape target and labels aligned with the actual VictoriaLogs Service and deployment configuration.
 
 ## Repository layout
 
@@ -265,48 +251,12 @@ For VictoriaLogs, its own metrics endpoint can be scraped by Prometheus. Keep th
 
 The exact manifests and application behavior are defined by the source files. This README is an architectural overview; deployment-specific values should be verified against the corresponding files under `infra/`.
 
-## Operating principles
-
-- **GitOps first:** keep the desired cluster state in Git and let Argo CD reconcile it.
-- **Automate delivery:** validate and scan changes before publishing images.
-- **Keep secrets out of Git:** retrieve secrets from Vault through ESO.
-- **Separate concerns:** use VLC for log collection and VictoriaLogs for log storage and querying.
-- **Observe the platform:** use metrics and logs together when investigating failures.
-- **Design for constrained hardware:** understand CPU, memory, disk I/O, and network trade-offs before adding workloads.
-- **Practice failure recovery:** document what happens when a node, pod, storage path, or dependency becomes unavailable.
-- **Make changes incrementally:** introduce infrastructure components in small, reviewable steps.
-
-## Current status
-
-The following reflects the project state described by the repository overview and the current homelab configuration. Check the manifests for the exact deployed release and settings.
-
-- [x] Two Ubuntu-based laptop nodes
-- [x] Kubernetes cluster bootstrapped with kubeadm
-- [x] Tailscale node connectivity
-- [x] containerd runtime
-- [x] GitHub Actions CI workflow
-- [x] Go linting and source validation
-- [x] Gitleaks secret scanning
-- [x] Trivy vulnerability scanning
-- [x] Container image build and publication to GHCR
-- [x] Argo CD GitOps deployment
-- [x] HashiCorp Vault
-- [x] External Secrets Operator
-- [x] Automated Vault unseal workflow
-- [x] Prometheus
-- [x] Grafana
-- [x] Disk Usage Exporter
-- [x] Scaphandre
-- [x] VictoriaLogs
-- [x] VictoriaLogs Collector (VLC)
-
 ## Possible next steps
 
 - Add actionable Prometheus alert rules and link each alert to a runbook.
 - Define and test VictoriaLogs retention, disk-capacity limits, and backup/recovery procedures.
 - Verify that VLC checkpoints and buffering behave correctly across Pod restarts.
 - Test log delivery during VictoriaLogs unavailability and collector restarts.
-- Add dashboards for ingestion rate, query latency, storage growth, and collector health.
 - Evaluate persistent-volume behavior and the impact of disk I/O contention on stateful workloads.
 - Practice node failure, workload rescheduling, and recovery from a damaged or unavailable data directory.
 - Automate TLS certificate lifecycle management.
