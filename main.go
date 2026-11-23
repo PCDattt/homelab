@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/big"
+	"uuid"
 	"fmt"
 	"log"
 	"net/http"
@@ -43,7 +45,9 @@ func generateLog() {
 	defer ticker.Stop()
 	for range ticker.C {
 		for i := 0; i < 30; i++ {
-			log.Println("Log from application")
+			id := uuid.New()
+			num := new(big.Int).SetBytes(id[:])
+			log.Printf("Log from application %d\n", num)
 		}
 	}
 }
