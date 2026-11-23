@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: golang-application
-          image: ghcr.io/pcdattt/homelab:sha-c9137dfd90c44728b9d1a2d9b1602c5d80b1692a
+          image: ghcr.io/pcdattt/homelab:sha-5bc0b659d370dbd34836ab1eadc427a7efbb2670
           ports:
             - containerPort: 8080
 ---
